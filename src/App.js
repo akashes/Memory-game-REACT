@@ -1,173 +1,118 @@
+import { useEffect, useState } from "react";
 import "./App.css";
-import { useState } from "react";
+import Card from "./Components/Card";
 
-import { TextField, Stack, Button, Palette, Experimental_CssVarsProvider } from "@mui/material";
+const cardImages=[
+	{"src":'./Photo/helmet-1.png',matched:false},
+	{'src':'./Photo/potion-1.png',matched:false},
+	{'src':'./Photo/ring-1.png',matched:false},
+	{'src':'./Photo/scroll-1.png',matched:false},
+	{'src':'./Photo/shield-1.png',matched:false},
+	{'src':'./Photo/sword-1.png',matched:false}
+]
+
 function App() {
-	const [interest, setInterest] = useState(0);
-	const [principal, setPrincipal] = useState(0);
-	const [rate, setRate] = useState(0);
-	const [year, setYear] = useState(0);
-	const [isValid, setIsValid] = useState(false);
-	const [isRateValid, setIsRateValid] = useState(false);
-	const [isYearValid, setIsYearValid] = useState(false);
-	const handleCalculate = (e) => {
-		e.preventDefault();
-		if (principal && rate && year) {
-			let result = (principal * year * rate) / 100;
-			setInterest(result);
-		} else {
-			alert("please fill the form correctly ");
+	//states
+	const [cards,setCards]=useState([])
+    const [turns, setTurns] = useState(0);
+	const[choiceOne,setChoiceOne]=useState(null)
+	const[choiceTwo,setChoiceTwo]=useState(null)
+	const [disabled,setDisabled]=useState(false)
+
+	const handleChoice=(card)=>{
+		if(card.id===choiceOne?.id){
+			return
 		}
-	};
-	const reset = () => {
-		setInterest(0);
-		setPrincipal(0);
-		setRate(0);
-		setYear(0);
-		setIsValid(false);
-		setIsRateValid(false);
-		setIsYearValid(false);
-	};
+				choiceOne ? setChoiceTwo(card):setChoiceOne(card)
+	
+		
+		
+	}
 
-	//to validate inputs
+	//Starting game automatically
+	useEffect(()=>{
+		shuffleCards()
 
-	// const principalFunction=(e)=>{
-	// 	const {value}=e.target
-	// 	console.log(value);
-	// 	// if(!!value.match(/^[0-9]+$/)){
-	// 	if(!isNaN(value)){
-	// 		setPrincipal(value)
-	// 		setIsValid(false)
+	},[])
 
-	// 	}else{
-	// 		setPrincipal(value)
-	// 		setIsValid(true)
-	// 	}
+	//compare two selected cards
+	useEffect(()=>{
+		if(choiceOne && choiceTwo){
+					setDisabled(true)
 
-	// }
-	// const RateFunction=(e)=>{
-	// 	const {value}=e.target
-	// 	if(!isNaN(value)){
-	// 		setRate(value)
-	// 		setIsRateValid(false)
+			
+		if(choiceOne.src===choiceTwo.src){
+			setCards(prevCards => {
+				return prevCards.map((card)=>{
 
-	// 	}else{
-	// 		setRate(value)
-	// 		setIsRateValid(true)
-
-	// 	}
-
-	// }
-	// const YearValidate=(e)=>{
-	// 	const{value}=e.target
-	// 	if(!isNaN(value)){
-	// 		setYear(value)
-	// 		setIsYearValid(false)
-	// 	}else{
-	// 		setYear(value)
-	// 		setIsYearValid(true)
-	// 	}
-
-	// }
-	const validateInput = (e) => {
-		const { name, value } = e.target;
-		console.log(name, value);
-		if (!isNaN(value)) {
-			if (name == "principal") {
-				setPrincipal(value);
-				setIsValid(false);
-			} else if (name == "rate") {
-				setRate(value);
-				setIsRateValid(false);
-			} else if (name == "year") {
-				setYear(value);
-				setIsYearValid(false);
-			}
-		} else {
-			if (name == "principal") {
-				setPrincipal(value);
-				setIsValid(true);
-			} else if (name == "rate") {
-				setRate(value);
-				setIsRateValid(true);
-			} else if (name == "year") {
-				setYear(value);
-				setIsYearValid(true);
-			}
+					if(card.src === choiceOne.src){
+						return {...card,matched:true}
+					}else{
+						return card
+					}
+				})
+			})
+			resetTurn()
+		}else{
+			console.log('cards do not match');
+			resetTurn()
 		}
-	};
+		}
 
+
+	},[choiceOne,choiceTwo])
+
+	console.log(cards);
+
+	const resetTurn=()=>{
+		setTimeout(()=>{
+				setChoiceOne(null)
+		setChoiceTwo(null)
+		setTurns(prevTurns => prevTurns+1)
+		setDisabled(false)
+
+		},500)
+	
+		
+
+	}
+	
+
+
+	//to shuffle cards
+	const shuffleCards=()=>{        // executes when new game is clicked , which shuffles the cards and also set it to cards state and initialize turns to 0
+		const shuffleCards= [...cardImages,...cardImages]
+		.sort(()=>Math.random() - .5)      // to shuffle the cards based on the retuns values 1,0 and -1
+		.map((ele)=>({...ele,id:Math.random()})) // includes a new key id with random values . () for returing the result within the same line
+		setChoiceOne(null)
+		setChoiceTwo(null)
+		setCards(shuffleCards)
+		setTurns(0)
+
+
+	}
+	console.log(cards,turns);
 	return (
-		<div style={{ height: "100vh" }} className="d-flex justify-content-center align-items-center bg-dark ">
-			<div style={{ width: "500px" }} className="bg-light  p-5 rounded">
-				<div className="heading">
-					<h3>Simple Interest Calculator </h3>
-					<p>Calculate your simple interests Easily</p>
-				</div>
-				<div
-					style={{ height: "150px" }}
-					className="result-card w-100 rounded d-flex justify-content-center align-items-center shadow flex-column bg-warning"
-				>
-					<h1>₹ {interest}</h1>
-					<p>Total Simple Interest</p>
-				</div>
+		<div className="App">
+			
+			<h1>Magic Match</h1>
+			<button onClick={shuffleCards}>New Game</button>
+					<div className="card-grid">
 
-				<form onSubmit={handleCalculate} className="mt-5">
-					<div className="mb-3">
-						<TextField
-							onChange={validateInput}
-							name="principal"
-							className="w-100"
-							id="outlined-basic"
-							label="Principle Amount"
-							variant="outlined"
-							value={principal || " "}
-						/>
-						{isValid && <div className="text-danger">Invalid Input</div>}
+						{cards.map((card)=>{
+							return (
+								<Card
+								 key={card.id}
+								 card={card} 
+								handleChoice={handleChoice}
+								flipped={card===choiceOne || card === choiceTwo || card.matched}
+								disabled={disabled}
+								  />
+							)
+						})}
 					</div>
+					<div className="turns">TURNS : {turns}</div>
 
-					<div className="mb-3">
-						<TextField
-							onChange={validateInput}
-							name="rate"
-							className="w-100"
-							id="outlined-basic"
-							label="Rate of interest (p.a) %"
-							variant="outlined"
-							value={rate || ""}
-						/>
-						{isRateValid && <div className="text-danger">Invalid Input</div>}
-					</div>
-
-					<div className="mb-3">
-						<TextField
-							onChange={validateInput}
-							name="year"
-							className="w-100"
-							id="outlined-basic"
-							label="Time period (Yr)"
-							variant="outlined"
-							value={year || ""}
-						/>
-						{isYearValid && <div className="text-danger">Invalid Input</div>}
-					</div>
-					<Stack direction="row" spacing={2}>
-						<Button
-							sx={{ bgcolor: "info.main" }}
-							type="submit"
-							style={{ width: "200px", height: "70px" }}
-							// className="bg-gray"
-							variant="contained"
-							disabled={isValid ? true : isRateValid ? true : isYearValid ? true : false}
-						>
-							CALCULATE
-						</Button>
-						<Button onClick={reset} style={{ width: "200px", height: "70px" }} variant="outlined">
-							RESET
-						</Button>
-					</Stack>
-				</form>
-			</div>
 		</div>
 	);
 }
